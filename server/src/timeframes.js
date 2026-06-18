@@ -137,3 +137,24 @@ export function isWithin(date, range) {
   const t = date.getTime();
   return t >= range.start.getTime() && t <= range.end.getTime();
 }
+
+/**
+ * Resolve the *previous* equivalent period for a timeframe (for deltas):
+ *   - calendar timeframes -> the prior calendar period (last week/month/etc.)
+ *   - custom -> the equal-length window immediately before it
+ *   - all_time -> null (no comparison)
+ */
+export function previousRange(timeframeId, custom = {}, now = new Date()) {
+  if (timeframeId === 'all_time') return null;
+  if (timeframeId === 'custom') {
+    const cur = resolveTimeframe('custom', custom, now);
+    const len = cur.end.getTime() - cur.start.getTime();
+    const end = new Date(cur.start.getTime() - 1);
+    return { start: new Date(end.getTime() - len), end };
+  }
+  // A reference instant one day before the current period's start falls inside
+  // the previous period; resolving the same timeframe there yields it.
+  const cur = resolveTimeframe(timeframeId, {}, now);
+  const ref = new Date(cur.start.getTime() - 24 * 60 * 60 * 1000);
+  return resolveTimeframe(timeframeId, {}, ref);
+}

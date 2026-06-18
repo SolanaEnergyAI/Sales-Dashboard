@@ -20,7 +20,7 @@ import {
   SALES_FUNNEL_POST_SAT_GROUPS,
 } from './config.js';
 import { parsers } from './mondayClient.js';
-import { resolveTimeframe, isWithin } from './timeframes.js';
+import { resolveTimeframe, previousRange, isWithin } from './timeframes.js';
 
 const BOARD_KEYS = {
   [BOARDS.virtualCallCentre]: 'virtualCallCentre',
@@ -328,13 +328,43 @@ function computeLeadSourceReport(normalized, range) {
  * @param {string} timeframeId
  * @param {object} custom { from, to } for custom timeframe
  */
+const COMPARE_KEYS = ['assigned', 'booked', 'sat', 'sold', 'revenue', 'grossProfit'];
+
+function deltaPct(cur, prev) {
+  if (!prev) return null; // no prior baseline -> no % (UI shows "new")
+  return Math.round(((cur - prev) / prev) * 1000) / 10;
+}
+
+function totalsComparison(curTotals, prevTotals) {
+  const out = {};
+  for (const k of COMPARE_KEYS) {
+    out[k] = {
+      current: curTotals[k] || 0,
+      previous: prevTotals[k] || 0,
+      delta: deltaPct(curTotals[k] || 0, prevTotals[k] || 0),
+    };
+  }
+  return out;
+}
+
 export function computeMetrics(normalized, timeframeId, custom = {}, now = new Date()) {
   const range = resolveTimeframe(timeframeId, custom, now);
+  const leadGen = computeRole(normalized, 'leadGen', range);
+  const salesRep = computeRole(normalized, 'salesRep', range);
+
+  // Previous-period comparison for KPI deltas.
+  const prev = previousRange(timeframeId, custom, now);
+  if (prev) {
+    leadGen.compare = totalsComparison(leadGen.totals, computeRole(normalized, 'leadGen', prev).totals);
+    salesRep.compare = totalsComparison(salesRep.totals, computeRole(normalized, 'salesRep', prev).totals);
+  }
+
   return {
     timeframe: timeframeId,
     range: { start: range.start.toISOString(), end: range.end.toISOString() },
-    leadGen: computeRole(normalized, 'leadGen', range),
-    salesRep: computeRole(normalized, 'salesRep', range),
+    previousRange: prev ? { start: prev.start.toISOString(), end: prev.end.toISOString() } : null,
+    leadGen,
+    salesRep,
     leadSources: computeLeadSourceReport(normalized, range),
   };
 }

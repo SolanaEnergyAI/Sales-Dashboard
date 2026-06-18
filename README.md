@@ -97,6 +97,20 @@ keeping each ratio within one creation cohort.
 Today · This Week (Mon-start) · This Month · This Quarter · This Six Months ·
 This Year · All Time · Custom range (the manual's "Customer Date").
 
+### Dashboard features
+- KPI cards with **period-over-period deltas** (▲/▼ vs the previous equivalent
+  period; "NEW" when there's no prior baseline).
+- Conversion funnel, pipeline-by-person chart, ranked leaderboard.
+- **Lead Source performance** (leads, sold, revenue, avg CPL, spend) + revenue
+  donut.
+- **CSV export** of the current role view (leaderboard + lead sources).
+- Solana-branded UI (logo at `web/public/solana-mark.svg` — swap in the official
+  SVG to replace the placeholder mark).
+
+### Local preview without a token
+`MOCK=1 npm start` serves the dashboard with realistic synthetic data (no Monday
+token needed) — handy for design/screenshots.
+
 ---
 
 ## API

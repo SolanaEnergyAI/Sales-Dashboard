@@ -70,5 +70,24 @@ export function buildMockNormalized() {
   // A couple of subcontracting jobs (no sold date) — must be ignored.
   iip.push({ id: 'sub1', groupId: 'sub', leadGen: [], salesRep: [], leadSource: null, cpl: null, dates: { creationLog: d('2026-06-02') }, amounts: {} });
 
+  // Prior-month (May) baseline so period-over-period deltas are meaningful.
+  const may = (i) => `2026-05-${String((i % 27) + 1).padStart(2, '0')}`;
+  for (let i = 0; i < 110; i++) {
+    vcc.push({
+      id: `mv${i}`, groupId: 'g', leadGen: P(gens[i % gens.length]), salesRep: [],
+      leadSource: sources[i % sources.length], cpl: 40 + (i % 5) * 12,
+      dates: { assignedToLg: d(may(i)), creationLog: d(may(i)) }, amounts: {},
+    });
+  }
+  const mayDeals = [11000, 24000, 18500, 13200, 9900, 26800, 15400, 30500, 12700, 17600, 14300, 21000];
+  for (let i = 0; i < mayDeals.length; i++) {
+    iip.push({
+      id: `mi${i}`, groupId: `mweek${i}`, leadGen: P(gens[i % gens.length]), salesRep: P(reps[i % reps.length]),
+      leadSource: sources[i % sources.length], cpl: 50,
+      dates: { bookedDate: d(may(i)), appointmentDate: d(may(i + 1)), soldDate: d(may(i + 3)), creationLog: d(may(i)) },
+      amounts: { revenue: mayDeals[i], grossProfit: Math.round(mayDeals[i] * 0.31) },
+    });
+  }
+
   return { virtualCallCentre: vcc, salesFunnel: sf, installations: iip };
 }

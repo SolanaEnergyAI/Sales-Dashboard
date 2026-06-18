@@ -175,6 +175,34 @@ test('Lead Source report aggregates leads, sold, revenue, spend by channel', () 
   assert.equal(r.leadSources[0].source, 'Solar Quotes');
 });
 
+test('Previous-period comparison computes deltas on totals', () => {
+  // One sold deal in May, two in June; compare June vs May.
+  const lg = [{ id: 'A', name: 'A' }];
+  const sr = [{ id: 'S', name: 'S' }];
+  const sale = (id, soldDate, rev) => ({
+    id, groupId: 'w', leadGen: lg, salesRep: sr, leadSource: 'TQC', cpl: null,
+    dates: { soldDate: d(soldDate), creationLog: d(soldDate) }, amounts: { revenue: rev, grossProfit: 0 },
+  });
+  const data = {
+    virtualCallCentre: [], salesFunnel: [],
+    installations: [sale('m1', '2026-05-10', 10000), sale('j1', '2026-06-05', 10000), sale('j2', '2026-06-20', 10000)],
+  };
+  const now = new Date('2026-06-15T00:00:00Z');
+  const r = computeMetrics(data, 'this_month', {}, now);
+
+  assert.equal(r.leadGen.totals.sold, 2); // June
+  assert.ok(r.leadGen.compare, 'comparison present');
+  assert.equal(r.leadGen.compare.sold.previous, 1); // May
+  assert.equal(r.leadGen.compare.sold.delta, 100); // 1 -> 2 = +100%
+  assert.equal(r.leadGen.compare.revenue.delta, 100); // 10k -> 20k
+});
+
+test('All-time has no previous comparison', () => {
+  const r = computeMetrics(dataset(), 'all_time');
+  assert.equal(r.previousRange, null);
+  assert.equal(r.leadGen.compare, undefined);
+});
+
 test('Timeframe filtering narrows the window', () => {
   // Only items whose own date column falls in June 14-16 should count for some.
   const r = computeMetrics(dataset(), 'custom', { from: '2026-06-14', to: '2026-06-16' });

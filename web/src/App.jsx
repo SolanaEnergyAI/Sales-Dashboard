@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { fetchMeta, fetchMetrics, fetchHealth, triggerRefresh } from './api.js';
+import { exportCsv } from './export.js';
 import KpiCards from './components/KpiCards.jsx';
 import ConversionPanel from './components/ConversionPanel.jsx';
 import Leaderboard from './components/Leaderboard.jsx';
@@ -91,6 +92,9 @@ export default function App() {
                 ? `Synced ${timeAgo(health.lastRefreshed)}`
                 : 'Awaiting sync…'}
           </span>
+          <button className="btn ghost" onClick={() => exportCsv({ data, role })} disabled={!data}>
+            ⤓ Export CSV
+          </button>
           <button className="btn" onClick={onRefresh} disabled={refreshing}>
             <span className={refreshing ? 'spin' : ''}>↻</span>
             {refreshing ? 'Refreshing' : 'Refresh'}
@@ -155,7 +159,7 @@ export default function App() {
 
       {roleData ? (
         <main>
-          <KpiCards totals={roleData.totals} />
+          <KpiCards totals={roleData.totals} compare={roleData.compare} />
           <div className="grid-2">
             <ConversionPanel role={role} totals={roleData.totals} labels={conversionLabels} />
             <RepChart people={roleData.people} />

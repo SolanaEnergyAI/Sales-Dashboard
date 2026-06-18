@@ -14,16 +14,16 @@ const MONEY_CARDS = [
 
 const money = (n) => '$' + Math.round(n || 0).toLocaleString('en-AU');
 
-export default function KpiCards({ totals }) {
+export default function KpiCards({ totals, compare }) {
   return (
     <div className="kpi-grid">
       {COUNT_CARDS.map((c) => (
-        <Card key={c.key} c={c}>
+        <Card key={c.key} c={c} delta={compare?.[c.key]}>
           {(totals?.[c.key] ?? 0).toLocaleString()}
         </Card>
       ))}
       {MONEY_CARDS.map((c) => (
-        <Card key={c.key} c={c} money>
+        <Card key={c.key} c={c} money delta={compare?.[c.key]}>
           {money(totals?.[c.key])}
         </Card>
       ))}
@@ -31,7 +31,21 @@ export default function KpiCards({ totals }) {
   );
 }
 
-function Card({ c, money, children }) {
+function Delta({ delta }) {
+  if (!delta) return null;
+  const { delta: d, previous } = delta;
+  // No prior baseline but activity now -> "new"; flat -> em dash.
+  if (d === null) return previous === 0 ? <span className="delta new">NEW</span> : null;
+  if (d === 0) return <span className="delta flat">—</span>;
+  const up = d > 0;
+  return (
+    <span className={up ? 'delta up' : 'delta down'} title="vs previous period">
+      {up ? '▲' : '▼'} {Math.abs(d)}%
+    </span>
+  );
+}
+
+function Card({ c, money, delta, children }) {
   return (
     <div className={`kpi-card kpi-${c.key}`}>
       <div className="kpi-top">
@@ -39,7 +53,10 @@ function Card({ c, money, children }) {
         <span className="kpi-icon">{c.icon}</span>
       </div>
       <div className={money ? 'kpi-value money' : 'kpi-value'}>{children}</div>
-      <div className="kpi-hint">{c.hint}</div>
+      <div className="kpi-foot">
+        <span className="kpi-hint">{c.hint}</span>
+        <Delta delta={delta} />
+      </div>
     </div>
   );
 }

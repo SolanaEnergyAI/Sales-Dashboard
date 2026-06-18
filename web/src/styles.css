@@ -73,6 +73,7 @@ body {
   font-family: inherit; transition: background 0.15s;
 }
 .btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.2); }
+.btn.ghost { background: transparent; }
 .btn:disabled { opacity: 0.55; cursor: default; }
 .btn .spin { animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -148,7 +149,13 @@ body {
 .kpi-label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .kpi-value { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
 .kpi-value.money { font-size: 23px; }
-.kpi-hint { font-size: 11px; color: var(--faint); margin-top: 3px; }
+.kpi-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; }
+.kpi-hint { font-size: 11px; color: var(--faint); }
+.delta { font-size: 11px; font-weight: 700; white-space: nowrap; padding: 1px 6px; border-radius: 20px; }
+.delta.up { color: #2f8f3a; background: #e8f5e3; }
+.delta.down { color: #c0492e; background: #fdeae3; }
+.delta.flat { color: var(--faint); background: #f0efe9; }
+.delta.new { color: #7a4914; background: #fdf0d8; }
 
 .kpi-assigned { --accent: #5b6b8c; --accent-soft: #eceff4; }
 .kpi-booked { --accent: var(--green); --accent-soft: #edf6e8; }
