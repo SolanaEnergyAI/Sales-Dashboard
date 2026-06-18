@@ -9,6 +9,7 @@ import LeadSourcePanel from './components/LeadSourcePanel.jsx';
 import LeadSourceChart from './components/LeadSourceChart.jsx';
 import TrendChart from './components/TrendChart.jsx';
 import PersonDrawer from './components/PersonDrawer.jsx';
+import TargetsPanel from './components/TargetsPanel.jsx';
 
 const POLL_MS = 60000;
 
@@ -185,6 +186,7 @@ export default function App() {
       {roleData ? (
         <main>
           <KpiCards totals={roleData.totals} compare={roleData.compare} />
+          <TargetsPanel monthly={data.monthly} />
           <div className="grid-2">
             <ConversionPanel role={role} totals={roleData.totals} labels={conversionLabels} />
             <RepChart people={roleData.people} />

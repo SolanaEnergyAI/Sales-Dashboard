@@ -132,6 +132,14 @@ export function resolveTimeframe(timeframeId, custom = {}, now = new Date()) {
   }
 }
 
+/** Progress through the current month in the configured tz: day X of N. */
+export function monthProgress(now = new Date()) {
+  const t = partsInTz(now, runtime.timezone);
+  const daysInMonth = new Date(Date.UTC(t.year, t.month + 1, 0)).getUTCDate();
+  const label = new Date(Date.UTC(t.year, t.month, 1)).toLocaleString('en-AU', { month: 'long', year: 'numeric' });
+  return { daysElapsed: t.day, daysInMonth, label };
+}
+
 export function isWithin(date, range) {
   if (!date) return false;
   const t = date.getTime();

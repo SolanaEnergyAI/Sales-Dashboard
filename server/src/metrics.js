@@ -18,9 +18,10 @@ import {
   COLUMNS,
   BOARDS,
   SALES_FUNNEL_POST_SAT_GROUPS,
+  runtime,
 } from './config.js';
 import { parsers } from './mondayClient.js';
-import { resolveTimeframe, previousRange, isWithin } from './timeframes.js';
+import { resolveTimeframe, previousRange, monthProgress, isWithin } from './timeframes.js';
 
 const BOARD_KEYS = {
   [BOARDS.virtualCallCentre]: 'virtualCallCentre',
@@ -358,6 +359,31 @@ function computeTrend(normalized, now, months = 6) {
 }
 
 /**
+ * Current-month progress toward team targets (always the current calendar month,
+ * independent of the selected timeframe). `pace` is the expected fraction of the
+ * month elapsed, for an "on track?" comparison.
+ */
+function computeMonthly(normalized, now) {
+  const range = resolveTimeframe('this_month', {}, now);
+  let sold = 0;
+  let revenue = 0;
+  for (const it of normalized.installations) {
+    if (!isWithin(it.dates.soldDate, range)) continue;
+    sold += 1;
+    revenue += it.amounts?.revenue || 0;
+  }
+  const { daysElapsed, daysInMonth, label } = monthProgress(now);
+  return {
+    label,
+    daysElapsed,
+    daysInMonth,
+    pace: Math.round((daysElapsed / daysInMonth) * 1000) / 10,
+    actual: { sold, revenue: Math.round(revenue) },
+    defaultTargets: { sold: runtime.targetSoldMonthly, revenue: runtime.targetRevenueMonthly },
+  };
+}
+
+/**
  * Top-level: compute metrics for both roles for a timeframe.
  * @param {object} normalized board arrays keyed by board key
  * @param {string} timeframeId
@@ -402,6 +428,7 @@ export function computeMetrics(normalized, timeframeId, custom = {}, now = new D
     salesRep,
     leadSources: computeLeadSourceReport(normalized, range),
     trend: computeTrend(normalized, now, 6),
+    monthly: computeMonthly(normalized, now),
   };
 }
 

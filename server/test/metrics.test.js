@@ -227,6 +227,24 @@ test('6-month trend buckets sold + revenue by month', () => {
   assert.equal(prev.revenue, 10000);
 });
 
+test('Monthly target progress reflects current-month actuals only', () => {
+  const sale = (id, sd, rev) => ({
+    id, groupId: 'w', leadGen: [], salesRep: [], leadSource: 'TQC', cpl: null,
+    dates: { soldDate: d(sd), creationLog: d(sd) }, amounts: { revenue: rev, grossProfit: 0 },
+  });
+  const data = {
+    virtualCallCentre: [], salesFunnel: [],
+    installations: [sale('a', '2026-06-05', 10000), sale('b', '2026-06-20', 15000), sale('c', '2026-05-30', 9999)],
+  };
+  const now = new Date('2026-06-15T00:00:00Z');
+  const r = computeMetrics(data, 'all_time', {}, now); // monthly is independent of timeframe
+  assert.equal(r.monthly.actual.sold, 2); // only June deals
+  assert.equal(r.monthly.actual.revenue, 25000);
+  assert.equal(r.monthly.daysInMonth, 30);
+  assert.equal(r.monthly.daysElapsed, 15);
+  assert.ok(r.monthly.defaultTargets.sold > 0);
+});
+
 test('Person drill-down returns deals, sources and summary for one person', () => {
   const detail = computePersonDetail(dataset(), 'leadGen', '1', 'all_time');
   assert.equal(detail.name, 'Lead Gen A');

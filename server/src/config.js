@@ -87,4 +87,7 @@ export const runtime = {
   refreshIntervalSeconds: Number(process.env.REFRESH_INTERVAL_SECONDS) || 300,
   timezone: process.env.DASHBOARD_TIMEZONE || 'Australia/Sydney',
   mondayToken: process.env.MONDAY_API_TOKEN || '',
+  // Default monthly team targets (overridable per-browser in the UI).
+  targetSoldMonthly: Number(process.env.TARGET_SOLD_MONTHLY) || 20,
+  targetRevenueMonthly: Number(process.env.TARGET_REVENUE_MONTHLY) || 400000,
 };
