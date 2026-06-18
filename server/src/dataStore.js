@@ -22,6 +22,21 @@ export async function refresh() {
   if (state.refreshing) return state;
   state.refreshing = true;
   try {
+    // Local preview mode: synthetic data, no Monday token required.
+    if (process.env.MOCK === '1') {
+      const { buildMockNormalized } = await import('./mockData.js');
+      state.normalized = buildMockNormalized();
+      state.counts = {
+        virtualCallCentre: state.normalized.virtualCallCentre.length,
+        salesFunnel: state.normalized.salesFunnel.length,
+        installations: state.normalized.installations.length,
+      };
+      state.usersById = new Map();
+      state.lastRefreshed = new Date().toISOString();
+      state.lastError = null;
+      state.refreshing = false;
+      return state;
+    }
     const usersById = await fetchUsers();
     const [vcc, sf, iip] = await Promise.all([
       fetchBoardItems(BOARDS.virtualCallCentre),

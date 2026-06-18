@@ -5,8 +5,17 @@ import ConversionPanel from './components/ConversionPanel.jsx';
 import Leaderboard from './components/Leaderboard.jsx';
 import RepChart from './components/RepChart.jsx';
 import LeadSourcePanel from './components/LeadSourcePanel.jsx';
+import LeadSourceChart from './components/LeadSourceChart.jsx';
 
 const POLL_MS = 60000;
+
+function timeAgo(iso) {
+  if (!iso) return null;
+  const s = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  return `${Math.round(s / 3600)}h ago`;
+}
 
 export default function App() {
   const [meta, setMeta] = useState(null);
@@ -59,6 +68,7 @@ export default function App() {
 
   const roleData = data?.[role];
   const conversionLabels = meta?.conversionLabels || {};
+  const dotClass = health?.lastError ? 'dot err' : 'dot';
 
   return (
     <div className="app">
@@ -71,43 +81,43 @@ export default function App() {
           </div>
         </div>
         <div className="status">
-          {health?.lastError && <span className="badge badge-error">Sync error</span>}
-          <span className="muted">
-            {health?.lastRefreshed
-              ? `Synced ${new Date(health.lastRefreshed).toLocaleString()}`
-              : 'Awaiting first sync…'}
+          <span className="sync">
+            <span className={dotClass} />
+            {health?.lastError
+              ? 'Sync error'
+              : health?.lastRefreshed
+                ? `Synced ${timeAgo(health.lastRefreshed)}`
+                : 'Awaiting sync…'}
           </span>
           <button className="btn" onClick={onRefresh} disabled={refreshing}>
-            {refreshing ? 'Refreshing…' : '↻ Refresh'}
+            <span className={refreshing ? 'spin' : ''}>↻</span>
+            {refreshing ? 'Refreshing' : 'Refresh'}
           </button>
         </div>
       </header>
 
-      {error && <div className="error-banner">⚠ {error}</div>}
+      {error && <div className="banner banner-error">⚠ {error}</div>}
       {health && !health.tokenConfigured && (
-        <div className="error-banner">
-          MONDAY_API_TOKEN is not configured on the server — metrics will be empty. Add it to
-          <code> server/.env</code> and restart.
+        <div className="banner banner-warn">
+          <span>⚙</span>
+          <span>
+            <code>MONDAY_API_TOKEN</code> isn't configured on the server, so metrics are empty. Add it
+            to <code>server/.env</code> and restart.
+          </span>
         </div>
       )}
 
       <div className="controls">
-        <div className="role-tabs">
-          <button
-            className={role === 'leadGen' ? 'tab active' : 'tab'}
-            onClick={() => setRole('leadGen')}
-          >
+        <div className="segmented">
+          <button className={role === 'leadGen' ? 'active' : ''} onClick={() => setRole('leadGen')}>
             Lead Gen
           </button>
-          <button
-            className={role === 'salesRep' ? 'tab active' : 'tab'}
-            onClick={() => setRole('salesRep')}
-          >
+          <button className={role === 'salesRep' ? 'active' : ''} onClick={() => setRole('salesRep')}>
             Sales Rep
           </button>
         </div>
-
-        <div className="timeframe-row">
+        <span className="spacer" />
+        <div className="timeframes">
           {(meta?.timeframes || []).map((tf) => (
             <button
               key={tf.id}
@@ -118,50 +128,54 @@ export default function App() {
             </button>
           ))}
         </div>
-
-        {timeframe === 'custom' && (
-          <div className="custom-range">
-            <label>
-              From
-              <input
-                type="date"
-                value={custom.from}
-                onChange={(e) => setCustom((c) => ({ ...c, from: e.target.value }))}
-              />
-            </label>
-            <label>
-              To
-              <input
-                type="date"
-                value={custom.to}
-                onChange={(e) => setCustom((c) => ({ ...c, to: e.target.value }))}
-              />
-            </label>
-          </div>
-        )}
       </div>
+
+      {timeframe === 'custom' && (
+        <div className="custom-range">
+          <label>
+            From
+            <input type="date" value={custom.from} onChange={(e) => setCustom((c) => ({ ...c, from: e.target.value }))} />
+          </label>
+          <label>
+            To
+            <input type="date" value={custom.to} onChange={(e) => setCustom((c) => ({ ...c, to: e.target.value }))} />
+          </label>
+        </div>
+      )}
 
       {data && (
         <div className="timeframe-caption">
-          Showing <strong>{data.timeframeLabel}</strong>
-          {loading && <span className="muted"> · updating…</span>}
+          <span className="live">● Live</span> &nbsp;· Showing <strong>{data.timeframeLabel}</strong> ·{' '}
+          {role === 'leadGen' ? 'Lead Gen' : 'Sales Rep'} view
+          {loading && <span> · updating…</span>}
         </div>
       )}
 
       {roleData ? (
-        <main className="content">
+        <main>
           <KpiCards totals={roleData.totals} />
-          <ConversionPanel role={role} totals={roleData.totals} labels={conversionLabels} />
-          <RepChart people={roleData.people} />
+          <div className="grid-2">
+            <ConversionPanel role={role} totals={roleData.totals} labels={conversionLabels} />
+            <RepChart people={roleData.people} />
+          </div>
           <Leaderboard role={role} people={roleData.people} />
-          <LeadSourcePanel sources={data.leadSources} />
+          <div className="grid-2">
+            <LeadSourceChart sources={data.leadSources} />
+            <LeadSourcePanel sources={data.leadSources} />
+          </div>
         </main>
+      ) : error ? (
+        <div className="loading">Unable to load metrics.</div>
       ) : (
-        <div className="loading">{error ? 'Unable to load metrics.' : 'Loading metrics…'}</div>
+        <div className="skeleton-grid">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div className="skeleton" key={i} />
+          ))}
+        </div>
       )}
 
       <footer className="footer">
-        Data source: Monday.com CRM · Virtual Call Centre → Sales Funnel → Installations In Progress
+        Data source: Monday.com CRM · <span className="pipe">Virtual Call Centre → Sales Funnel → Installations</span>
         {health?.timezone ? ` · ${health.timezone}` : ''}
       </footer>
     </div>

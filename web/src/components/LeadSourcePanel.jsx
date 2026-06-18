@@ -7,7 +7,7 @@ const cpl = (v) => (v === null || v === undefined ? '—' : money(v));
 export default function LeadSourcePanel({ sources }) {
   const rows = sources || [];
   return (
-    <div className="panel">
+    <div className="panel flush">
       <h2 className="panel-title">Lead Source Performance</h2>
       <div className="table-wrap">
         <table className="board-table">

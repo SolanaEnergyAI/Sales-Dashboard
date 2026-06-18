@@ -54,6 +54,8 @@ export default function Leaderboard({ role, people }) {
 
   const arrow = (key) => (key === sortKey ? (dir === 'desc' ? ' ▼' : ' ▲') : '');
 
+  const rankClass = (i) => (i === 0 ? 'rank r1' : i === 1 ? 'rank r2' : i === 2 ? 'rank r3' : 'rank');
+
   return (
     <div className="panel">
       <h2 className="panel-title">{role === 'leadGen' ? 'Lead Gen' : 'Sales Rep'} Leaderboard</h2>
@@ -85,9 +87,12 @@ export default function Leaderboard({ role, people }) {
                 </td>
               </tr>
             )}
-            {sorted.map((p) => (
+            {sorted.map((p, i) => (
               <tr key={p.id}>
-                <td className="sticky-col name">{p.name}</td>
+                <td className="sticky-col name">
+                  <span className={rankClass(i)}>{i + 1}</span>
+                  {p.name}
+                </td>
                 {BASE_COLS.map((c) => (
                   <td key={c.key} className="num">
                     {c.money ? money(p[c.key]) : p[c.key]}
