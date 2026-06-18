@@ -58,6 +58,9 @@ export function normalizeBoard(boardId, rawItems, usersById) {
       groupId: item.groupId,
       leadGen: map.leadGen ? parsers.parsePeople(c[map.leadGen], usersById) : [],
       salesRep: map.salesRep ? parsers.parsePeople(c[map.salesRep], usersById) : [],
+      // Lead Source is a status column — its label is the column's `text`.
+      leadSource: map.leadSource ? c[map.leadSource]?.text || null : null,
+      cpl: map.cpl ? parsers.parseNumber(c[map.cpl]) : null,
       dates,
       amounts,
     };
@@ -273,6 +276,53 @@ function computeRole(normalized, role, range) {
 }
 
 /**
+ * Lead Source performance for a timeframe (channel ROI), independent of role:
+ *   - leads:   items across all boards with "Assigned to LG" in range
+ *   - sold:    Installations items sold in range (Sold Date)
+ *   - revenue: Total Cash Price of those sold deals
+ *   - spend:   sum of CPL across the leads (acquisition cost)
+ *   - avgCpl:  spend / leads;  convRate: sold / leads
+ */
+function computeLeadSourceReport(normalized, range) {
+  const bySource = new Map();
+  const row = (src) => {
+    const key = src || 'Unspecified';
+    if (!bySource.has(key)) bySource.set(key, { source: key, leads: 0, sold: 0, revenue: 0, spend: 0 });
+    return bySource.get(key);
+  };
+
+  // Leads acquired (Assigned to LG) across every board, with their CPL spend.
+  for (const board of ['virtualCallCentre', 'salesFunnel', 'installations']) {
+    for (const item of normalized[board]) {
+      if (!isWithin(item.dates.assignedToLg, range)) continue;
+      const r = row(item.leadSource);
+      r.leads += 1;
+      r.spend += item.cpl || 0;
+    }
+  }
+
+  // Sales closed (Sold Date) + revenue, by the source carried on the deal.
+  for (const item of normalized.installations) {
+    if (!isWithin(item.dates.soldDate, range)) continue;
+    const r = row(item.leadSource);
+    r.sold += 1;
+    r.revenue += item.amounts?.revenue || 0;
+  }
+
+  return [...bySource.values()]
+    .map((r) => ({
+      source: r.source,
+      leads: r.leads,
+      sold: r.sold,
+      revenue: Math.round(r.revenue),
+      spend: Math.round(r.spend),
+      avgCpl: r.leads ? Math.round(r.spend / r.leads) : null,
+      convRate: r.leads ? Math.round((r.sold / r.leads) * 1000) / 10 : null,
+    }))
+    .sort((a, b) => b.revenue - a.revenue || b.sold - a.sold || b.leads - a.leads);
+}
+
+/**
  * Top-level: compute metrics for both roles for a timeframe.
  * @param {object} normalized board arrays keyed by board key
  * @param {string} timeframeId
@@ -285,6 +335,7 @@ export function computeMetrics(normalized, timeframeId, custom = {}, now = new D
     range: { start: range.start.toISOString(), end: range.end.toISOString() },
     leadGen: computeRole(normalized, 'leadGen', range),
     salesRep: computeRole(normalized, 'salesRep', range),
+    leadSources: computeLeadSourceReport(normalized, range),
   };
 }
 

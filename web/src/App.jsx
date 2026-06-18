@@ -4,6 +4,7 @@ import KpiCards from './components/KpiCards.jsx';
 import ConversionPanel from './components/ConversionPanel.jsx';
 import Leaderboard from './components/Leaderboard.jsx';
 import RepChart from './components/RepChart.jsx';
+import LeadSourcePanel from './components/LeadSourcePanel.jsx';
 
 const POLL_MS = 60000;
 
@@ -153,6 +154,7 @@ export default function App() {
           <ConversionPanel role={role} totals={roleData.totals} labels={conversionLabels} />
           <RepChart people={roleData.people} />
           <Leaderboard role={role} people={roleData.people} />
+          <LeadSourcePanel sources={data.leadSources} />
         </main>
       ) : (
         <div className="loading">{error ? 'Unable to load metrics.' : 'Loading metrics…'}</div>

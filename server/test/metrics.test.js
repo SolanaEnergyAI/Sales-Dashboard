@@ -144,6 +144,37 @@ test('Divide-by-zero conversions return null (rendered as — in UI)', () => {
   assert.equal(b.conv.satToSold, null);
 });
 
+test('Lead Source report aggregates leads, sold, revenue, spend by channel', () => {
+  const data = {
+    virtualCallCentre: [
+      { id: 'v1', groupId: 'g', leadGen: [LG_A], salesRep: [], leadSource: 'Solar Quotes', cpl: 50, dates: { assignedToLg: d('2026-06-10'), creationLog: d('2026-06-10') }, amounts: {} },
+      { id: 'v2', groupId: 'g', leadGen: [LG_B], salesRep: [], leadSource: 'TQC', cpl: 30, dates: { assignedToLg: d('2026-06-11'), creationLog: d('2026-06-11') }, amounts: {} },
+      { id: 'v3', groupId: 'g', leadGen: [LG_A], salesRep: [], leadSource: 'Solar Quotes', cpl: 70, dates: { assignedToLg: d('2026-06-12'), creationLog: d('2026-06-12') }, amounts: {} },
+    ],
+    salesFunnel: [],
+    installations: [
+      { id: 'i1', groupId: 'w', leadGen: [LG_A], salesRep: [SR_A], leadSource: 'Solar Quotes', cpl: null, dates: { soldDate: d('2026-06-14'), creationLog: d('2026-06-05') }, amounts: { revenue: 25000, grossProfit: 6000 } },
+    ],
+  };
+  const r = computeMetrics(data, 'all_time');
+  const sq = r.leadSources.find((s) => s.source === 'Solar Quotes');
+  const tqc = r.leadSources.find((s) => s.source === 'TQC');
+
+  assert.equal(sq.leads, 2); // v1 + v3
+  assert.equal(sq.sold, 1); // i1
+  assert.equal(sq.revenue, 25000);
+  assert.equal(sq.spend, 120); // 50 + 70
+  assert.equal(sq.avgCpl, 60); // 120 / 2
+  assert.equal(sq.convRate, 50); // 1 sold / 2 leads
+
+  assert.equal(tqc.leads, 1);
+  assert.equal(tqc.sold, 0);
+  assert.equal(tqc.convRate, 0);
+
+  // Sorted by revenue desc -> Solar Quotes first.
+  assert.equal(r.leadSources[0].source, 'Solar Quotes');
+});
+
 test('Timeframe filtering narrows the window', () => {
   // Only items whose own date column falls in June 14-16 should count for some.
   const r = computeMetrics(dataset(), 'custom', { from: '2026-06-14', to: '2026-06-16' });
