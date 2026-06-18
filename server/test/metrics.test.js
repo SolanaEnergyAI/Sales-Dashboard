@@ -112,6 +112,31 @@ test('Revenue & gross profit sum only sold deals, by person', () => {
   assert.equal(b.revenue, 0);
 });
 
+test('A sale is verified ONLY by a Sold Date — dynamic on presence', () => {
+  // Same item, toggled: no Sold Date -> not a sale; Sold Date set -> counts.
+  const make = (soldDate) => ({
+    virtualCallCentre: [],
+    salesFunnel: [],
+    installations: [
+      {
+        id: 'x', groupId: 'g', leadGen: [LG_A], salesRep: [SR_A],
+        dates: { bookedDate: d('2026-06-02'), appointmentDate: d('2026-06-05'), soldDate, creationLog: d('2026-06-01') },
+        amounts: { revenue: 10000, grossProfit: 2000 },
+      },
+    ],
+  });
+
+  const unsold = computeMetrics(make(null), 'all_time');
+  assert.equal(unsold.leadGen.totals.sold, 0);
+  assert.equal(unsold.leadGen.totals.revenue, 0);
+  assert.equal(unsold.salesRep.totals.sat, 0); // IIP "sat" also requires a Sold Date
+
+  const sold = computeMetrics(make(d('2026-06-10')), 'all_time');
+  assert.equal(sold.leadGen.totals.sold, 1);
+  assert.equal(sold.leadGen.totals.revenue, 10000);
+  assert.equal(sold.salesRep.totals.sat, 1);
+});
+
 test('Divide-by-zero conversions return null (rendered as — in UI)', () => {
   const r = computeMetrics(dataset(), 'all_time');
   const b = r.leadGen.people.find((p) => p.id === '2');
