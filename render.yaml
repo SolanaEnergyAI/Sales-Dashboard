@@ -1,0 +1,19 @@
+# Render Blueprint — deploys the dashboard as one Docker web service.
+services:
+  - type: web
+    name: solana-sales-dashboard
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: MONDAY_API_TOKEN
+        sync: false
+      - key: DASHBOARD_TIMEZONE
+        value: Australia/Sydney
+      - key: REFRESH_INTERVAL_SECONDS
+        value: "300"
+      - key: TARGET_SOLD_MONTHLY
+        value: "20"
+      - key: TARGET_REVENUE_MONTHLY
+        value: "400000"
