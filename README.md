@@ -122,14 +122,16 @@ timeframe windowing against a synthetic dataset.
 
 ---
 
-## Notes & assumptions (please confirm)
+## Notes & decisions (confirmed)
 
-1. **SR "Assigned" vs "Booked":** the manual defines Sales Rep *Assigned* using
-   the **Booked Date** column, and lists both "Assigned→…" and "Booked→…"
-   conversions. Since both resolve to the same Booked-Date filter, those Sales
-   Rep ratios are currently identical. If "Assigned" should mean something
-   different for a rep, tell me the column and I'll split them.
-2. **Installations "Sat":** items in the Installations board are only counted as
-   *Sat* when they have a **Sold Date** (i.e. genuine Solana sales), matching the
-   manual's note that no-Sold-Date items are subcontracting jobs.
-3. Week boundaries start **Monday**; quarters/halves are calendar-based.
+1. **Attribution = Monday people columns.** A Lead Gen "owns" an item when they
+   are in the **Lead Gen** people column; a Sales Rep "owns" it when they are in
+   the **Sales Rep** people column. Every metric is grouped by these columns.
+2. **SR "Assigned" uses Booked Date.** Per the manual, a Sales Rep's *Assigned*
+   count is items where they sit in the Sales Rep column, dated by **Booked
+   Date**. Consequently a rep's "Assigned→…" and "Booked→…" conversions are the
+   same ratio by design.
+3. **Installations "Sat" requires a Sold Date.** Installation items count as
+   *Sat* only when **Sold Date** is filled (genuine Solana sales); no-Sold-Date
+   items are subcontracting jobs and are excluded.
+4. Week boundaries start **Monday**; quarters/halves are calendar-based.
