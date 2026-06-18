@@ -1,10 +1,12 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { chartColors } from '../chartTheme.js';
 
 const COLORS = ['#6ab24f', '#f9b834', '#f98f33', '#2bb7a3', '#5b6b8c', '#b07cd6', '#e5736b', '#9bbf3f'];
 const money = (n) => '$' + Math.round(n || 0).toLocaleString('en-AU');
 
-export default function LeadSourceChart({ sources }) {
+export default function LeadSourceChart({ sources, dark }) {
+  const c = chartColors(dark);
   const data = (sources || []).filter((s) => s.revenue > 0).map((s) => ({ name: s.source, value: s.revenue }));
 
   return (
@@ -33,7 +35,8 @@ export default function LeadSourceChart({ sources }) {
               </Pie>
               <Tooltip
                 formatter={(v) => money(v)}
-                contentStyle={{ background: '#fff', border: '1px solid #e7e6df', borderRadius: 12, boxShadow: '0 6px 22px rgba(30,30,43,0.1)', fontSize: 12 }}
+                contentStyle={{ background: c.tipBg, border: `1px solid ${c.tipBorder}`, borderRadius: 12, boxShadow: '0 6px 22px rgba(0,0,0,0.18)', fontSize: 12 }}
+                itemStyle={{ color: c.tipText }}
               />
               <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
             </PieChart>

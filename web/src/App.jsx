@@ -35,6 +35,13 @@ export default function App() {
   const [person, setPerson] = useState(null);
   const [personLoading, setPersonLoading] = useState(false);
   const [personError, setPersonError] = useState(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem('solana.theme') || 'light');
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('solana.theme', theme);
+  }, [theme]);
+  const dark = theme === 'dark';
 
   useEffect(() => {
     fetchMeta().then(setMeta).catch((e) => setError(e.message));
@@ -118,6 +125,13 @@ export default function App() {
                 ? `Synced ${timeAgo(health.lastRefreshed)}`
                 : 'Awaiting sync…'}
           </span>
+          <button
+            className="btn icon-btn"
+            onClick={() => setTheme(dark ? 'light' : 'dark')}
+            title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {dark ? '☀' : '☾'}
+          </button>
           <button className="btn ghost" onClick={() => exportCsv({ data, role })} disabled={!data}>
             ⤓ Export CSV
           </button>
@@ -189,12 +203,12 @@ export default function App() {
           <TargetsPanel monthly={data.monthly} />
           <div className="grid-2">
             <ConversionPanel role={role} totals={roleData.totals} labels={conversionLabels} />
-            <RepChart people={roleData.people} />
+            <RepChart people={roleData.people} dark={dark} />
           </div>
-          <TrendChart trend={data.trend} />
+          <TrendChart trend={data.trend} dark={dark} />
           <Leaderboard role={role} people={roleData.people} onSelect={setPersonId} />
           <div className="grid-2">
-            <LeadSourceChart sources={data.leadSources} />
+            <LeadSourceChart sources={data.leadSources} dark={dark} />
             <LeadSourcePanel sources={data.leadSources} />
           </div>
         </main>
