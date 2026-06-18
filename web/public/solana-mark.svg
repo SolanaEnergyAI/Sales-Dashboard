@@ -1,0 +1,19 @@
+<svg viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Solana Energy mark">
+  <!-- Placeholder recreation of the Solana Energy swirl emblem.
+       Replace this file with the official solana-mark.svg for exact fidelity. -->
+  <defs>
+    <clipPath id="ring"><circle cx="540" cy="540" r="498"/></clipPath>
+  </defs>
+  <g clip-path="url(#ring)">
+    <!-- Green crescent (top), bottom edge an S-curve -->
+    <path fill="#6AB24F" d="M-20,560 C260,300 800,300 1100,560 L1100,-40 L-20,-40 Z"/>
+    <!-- Orange crescent (bottom), top edge the parallel S-curve (white gap between) -->
+    <path fill="#F98F33" d="M-20,690 C260,430 800,430 1100,690 L1100,1120 L-20,1120 Z"/>
+    <!-- Yellow S ribbon weaving through the centre -->
+    <path fill="#F9B834" d="M250,470 C470,330 610,330 830,470 C700,560 660,560 560,520 C470,485 410,505 320,575 C275,545 255,510 250,470 Z"/>
+    <path fill="#F9B834" d="M830,610 C610,750 470,750 250,610 C380,520 420,520 520,560 C610,595 670,575 760,505 C805,535 825,570 830,610 Z"/>
+    <!-- Subtle darker overlaps for depth -->
+    <path fill="#5A974A" fill-opacity="0.85" d="M120,470 C200,360 320,330 420,360 C300,420 250,500 250,560 C190,545 140,515 120,470 Z"/>
+    <path fill="#E5742A" fill-opacity="0.85" d="M960,610 C880,720 760,750 660,720 C780,660 830,580 830,520 C890,535 940,565 960,610 Z"/>
+  </g>
+</svg>

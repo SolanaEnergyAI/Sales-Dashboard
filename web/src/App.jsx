@@ -74,9 +74,11 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="logo">☀️</span>
+          <img className="logo-mark" src="/solana-mark.svg" alt="Solana Energy" />
           <div>
-            <div className="brand-title">Solana Energy</div>
+            <div className="brand-title">
+              SOLANA <span className="brand-thin">Energy</span>
+            </div>
             <div className="brand-sub">Live Sales Metrics Dashboard</div>
           </div>
         </div>
