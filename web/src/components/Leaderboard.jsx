@@ -5,7 +5,11 @@ const BASE_COLS = [
   { key: 'booked', label: 'Booked' },
   { key: 'sat', label: 'Sat' },
   { key: 'sold', label: 'Sold' },
+  { key: 'revenue', label: 'Revenue', money: true },
+  { key: 'grossProfit', label: 'GP', money: true },
 ];
+
+const money = (n) => '$' + Math.round(n || 0).toLocaleString('en-AU');
 
 const CONV_COLS = {
   leadGen: [
@@ -86,7 +90,7 @@ export default function Leaderboard({ role, people }) {
                 <td className="sticky-col name">{p.name}</td>
                 {BASE_COLS.map((c) => (
                   <td key={c.key} className="num">
-                    {p[c.key]}
+                    {c.money ? money(p[c.key]) : p[c.key]}
                   </td>
                 ))}
                 <td className="divider" />

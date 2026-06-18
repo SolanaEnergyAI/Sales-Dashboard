@@ -96,6 +96,14 @@ const RAW = [
   },
 ];
 
+test('parseNumber handles formula display_value and plain numbers', () => {
+  assert.equal(parsers.parseNumber({ type: 'formula', display_value: '$12,345.67' }), 12345.67);
+  assert.equal(parsers.parseNumber({ type: 'numeric', value: '8000', text: '8000' }), 8000);
+  assert.equal(parsers.parseNumber({ type: 'formula', display_value: '' }), null);
+  assert.equal(parsers.parseNumber(null), null);
+  assert.equal(parsers.parseNumber({ type: 'numeric', value: null, text: '' }), null);
+});
+
 test('parsers handle the real Monday value shapes', () => {
   const cols = (id) => RAW.find((r) => r.id === id).column_values.reduce((m, c) => ((m[c.id] = c), m), {});
 

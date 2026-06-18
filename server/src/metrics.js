@@ -49,12 +49,17 @@ export function normalizeBoard(boardId, rawItems, usersById) {
       parseCreationLogText(c[map.creationLog]) ||
       item.createdAt ||
       null;
+    const amounts = {
+      revenue: map.revenue ? parsers.parseNumber(c[map.revenue]) : null,
+      grossProfit: map.grossProfit ? parsers.parseNumber(c[map.grossProfit]) : null,
+    };
     return {
       id: item.id,
       groupId: item.groupId,
       leadGen: map.leadGen ? parsers.parsePeople(c[map.leadGen], usersById) : [],
       salesRep: map.salesRep ? parsers.parsePeople(c[map.salesRep], usersById) : [],
       dates,
+      amounts,
     };
   });
 }
@@ -175,6 +180,32 @@ function countMetric(normalized, role, metric, range, useCreationLog) {
   return { total, perPerson };
 }
 
+/**
+ * Sum the $ amounts (revenue, gross profit) of SOLD deals in the timeframe,
+ * by person, for a role. Mirrors the `sold` source (Installations, Sold Date).
+ */
+function sumSoldAmounts(normalized, role, range) {
+  const perPerson = new Map(); // personId -> { name, revenue, grossProfit }
+  const total = { revenue: 0, grossProfit: 0 };
+  for (const source of SOURCES[role].sold) {
+    const items = normalized[source.board];
+    for (const item of items) {
+      if (!itemQualifies(item, source, source.dateField, range)) continue;
+      const rev = item.amounts?.revenue || 0;
+      const gp = item.amounts?.grossProfit || 0;
+      total.revenue += rev;
+      total.grossProfit += gp;
+      for (const person of item[role]) {
+        const cur = perPerson.get(person.id) || { name: person.name, revenue: 0, grossProfit: 0 };
+        cur.revenue += rev;
+        cur.grossProfit += gp;
+        perPerson.set(person.id, cur);
+      }
+    }
+  }
+  return { total, perPerson };
+}
+
 function pct(numerator, denominator) {
   if (!denominator) return null; // avoid divide-by-zero; UI shows "—"
   return Math.round((numerator / denominator) * 1000) / 10; // one decimal place
@@ -193,12 +224,16 @@ function computeRole(normalized, role, range) {
     cohort[metric] = countMetric(normalized, role, metric, range, true);
   }
 
+  // Revenue / gross profit on sold deals (by Sold Date in range).
+  const money = sumSoldAmounts(normalized, role, range);
+
   // Collect everyone who appears in any metric.
   const personIds = new Set();
   for (const metric of BASE_METRICS) {
     for (const id of qty[metric].perPerson.keys()) personIds.add(id);
     for (const id of cohort[metric].perPerson.keys()) personIds.add(id);
   }
+  for (const id of money.perPerson.keys()) personIds.add(id);
 
   const convDefs = CONVERSIONS[role];
   const people = [];
@@ -216,13 +251,19 @@ function computeRole(normalized, role, range) {
       const d = cohort[den].perPerson.get(id)?.count || 0;
       row.conv[label] = pct(n, d);
     }
+    const m = money.perPerson.get(id);
+    row.revenue = m ? Math.round(m.revenue) : 0;
+    row.grossProfit = m ? Math.round(m.grossProfit) : 0;
+    if (!row.name && m) row.name = m.name;
     if (!row.name) row.name = `User ${id}`;
     people.push(row);
   }
-  people.sort((a, b) => b.sold - a.sold || b.sat - a.sat || b.assigned - a.assigned);
+  people.sort((a, b) => b.sold - a.sold || b.revenue - a.revenue || b.assigned - a.assigned);
 
   const totals = {};
   for (const metric of BASE_METRICS) totals[metric] = qty[metric].total;
+  totals.revenue = Math.round(money.total.revenue);
+  totals.grossProfit = Math.round(money.total.grossProfit);
   totals.conv = {};
   for (const [label, [num, den]] of Object.entries(convDefs)) {
     totals.conv[label] = pct(cohort[num].total, cohort[den].total);

@@ -28,6 +28,8 @@ export const COLUMNS = {
     assignedToLg: 'date0__1', // "Assigned to LG"
     appointmentDate: 'date2', // "*️⃣ Appointment Date & Time"
     creationLog: 'creation_log',
+    leadSource: 'lead_source', // "*️⃣ Lead Source"
+    cpl: 'numbers__1', // "CPL"
   },
   // 🤝 Sales Funnel
   salesFunnel: {
@@ -37,6 +39,8 @@ export const COLUMNS = {
     bookedDate: 'date1', // "Booked Date"
     assignedToLg: 'date__1', // "Assigned to LG"
     creationLog: 'pulse_log_mkt5pwbr', // "Creation log"
+    leadSource: 'lead_source_1', // "*️⃣ Lead Source"
+    cpl: 'numbers__1', // "CPL"
   },
   // 🔄️ Installations In Progress
   installations: {
@@ -47,6 +51,14 @@ export const COLUMNS = {
     appointmentDate: 'date5', // "✅ Appointment Date"
     assignedToLg: 'date__1', // "✅ Assigned to LG"
     creationLog: 'creation_log',
+    leadSource: 'lead_source_1', // "✅ Lead Source"
+    cpl: 'numbers__1', // "✅ CPL"
+    // Revenue at point of sale = Total Cash Price (reliably populated when sold).
+    revenue: 'formula98', // "🤝 Total Cash Price ✅" (formula)
+    // Gross Profit + the "Total Revenue" formula only populate post-install
+    // (job-costing). Kept here for when those figures are filled in.
+    grossProfit: 'formula_mks93vrv', // "💵 Gross Profit ✅" (formula)
+    realizedRevenue: 'formula_mks9q4r9', // "💵 Total Revenue ✅" (post-install)
   },
 };
 

@@ -36,11 +36,13 @@ function dataset() {
       {
         id: 'i1', groupId: 'week1', leadGen: [LG_A], salesRep: [SR_A],
         dates: { assignedToLg: d('2026-06-05'), bookedDate: d('2026-06-06'), appointmentDate: d('2026-06-07'), soldDate: d('2026-06-14'), creationLog: d('2026-06-05') },
+        amounts: { revenue: 20000, grossProfit: 5000 },
       },
-      // Subcontracting job (no soldDate): must NOT count toward sat/sold
+      // Subcontracting job (no soldDate): must NOT count toward sat/sold/$
       {
         id: 'i2', groupId: 'week1', leadGen: [LG_B], salesRep: [SR_A],
         dates: { assignedToLg: d('2026-06-05'), bookedDate: d('2026-06-06'), appointmentDate: d('2026-06-07'), soldDate: null, creationLog: d('2026-06-05') },
+        amounts: { revenue: 99999, grossProfit: 99999 },
       },
     ],
   };
@@ -92,6 +94,22 @@ test('Conversion percentages divide cohort counts and round to one decimal', () 
   assert.equal(a.conv.assignedToSat, 50); // 2/4
   assert.equal(a.conv.assignedToSold, 25); // 1/4
   assert.equal(a.conv.satToSold, 50); // 1/2
+});
+
+test('Revenue & gross profit sum only sold deals, by person', () => {
+  const r = computeMetrics(dataset(), 'all_time');
+  // Only i1 is sold (i2 has no Sold Date) -> revenue 20000, GP 5000.
+  assert.equal(r.leadGen.totals.revenue, 20000);
+  assert.equal(r.leadGen.totals.grossProfit, 5000);
+  assert.equal(r.salesRep.totals.revenue, 20000);
+
+  const a = r.leadGen.people.find((p) => p.id === '1');
+  assert.equal(a.revenue, 20000);
+  assert.equal(a.grossProfit, 5000);
+
+  // LG_B only owns the subcontracting job -> no revenue.
+  const b = r.leadGen.people.find((p) => p.id === '2');
+  assert.equal(b.revenue, 0);
 });
 
 test('Divide-by-zero conversions return null (rendered as — in UI)', () => {

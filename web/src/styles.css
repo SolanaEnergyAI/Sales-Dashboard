@@ -79,7 +79,7 @@ body {
 
 /* KPI cards */
 .kpi-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 18px;
 }
 .kpi-card {
   background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
@@ -92,7 +92,10 @@ body {
 .kpi-booked::before { background: var(--purple); }
 .kpi-sat::before { background: var(--amber); }
 .kpi-sold::before { background: var(--green); }
+.kpi-revenue::before { background: #14b8a6; }
+.kpi-grossProfit::before { background: #22c55e; }
 .kpi-value { font-size: 34px; font-weight: 800; }
+.kpi-value.money { font-size: 26px; }
 .kpi-label { font-size: 15px; font-weight: 600; margin-top: 2px; }
 .kpi-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
@@ -134,6 +137,9 @@ body {
 
 .footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border); }
 
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 860px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .conv-grid { grid-template-columns: 1fr; }

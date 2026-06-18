@@ -51,6 +51,34 @@ function parsePeople(columnValue, usersById) {
   }));
 }
 
+/**
+ * Parse a numeric/currency column into a Number (or null).
+ * Handles plain numbers columns (value JSON) and formula columns
+ * (`display_value` like "$12,345.00"). Strips currency symbols/commas.
+ */
+function parseNumber(columnValue) {
+  if (!columnValue) return null;
+  const raw =
+    columnValue.display_value ??
+    (columnValue.value ? safeJson(columnValue.value) : null) ??
+    columnValue.text ??
+    null;
+  if (raw === null || raw === '') return null;
+  const cleaned = String(raw).replace(/[^0-9.-]/g, '');
+  if (cleaned === '' || cleaned === '-' || cleaned === '.') return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
+function safeJson(s) {
+  try {
+    const v = JSON.parse(s);
+    return typeof v === 'object' && v !== null ? null : v;
+  } catch {
+    return null;
+  }
+}
+
 /** Parse a date column `value` JSON into a UTC Date (or null). */
 function parseDate(columnValue) {
   if (!columnValue || !columnValue.value) return null;
@@ -113,7 +141,13 @@ export async function fetchBoardItems(boardId) {
                 id
                 created_at
                 group { id }
-                column_values(ids: $columnIds) { id type text value }
+                column_values(ids: $columnIds) {
+                  id
+                  type
+                  text
+                  value
+                  ... on FormulaValue { display_value }
+                }
               }
             }
           }
@@ -163,4 +197,4 @@ function pushItems(target, rawItems, columnIds) {
   }
 }
 
-export const parsers = { parsePeople, parseDate };
+export const parsers = { parsePeople, parseDate, parseNumber };
