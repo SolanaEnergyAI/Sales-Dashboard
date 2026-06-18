@@ -89,5 +89,25 @@ export function buildMockNormalized() {
     });
   }
 
+  // Earlier months (Jan–Apr) so the 6-month trend has shape.
+  const monthsBack = [
+    ['2026-01', 7, 14500],
+    ['2026-02', 9, 16200],
+    ['2026-03', 11, 15800],
+    ['2026-04', 13, 17100],
+  ];
+  for (const [ym, count, avg] of monthsBack) {
+    for (let i = 0; i < count; i++) {
+      const day = `${ym}-${String((i % 26) + 2).padStart(2, '0')}`;
+      const rev = avg + (i % 5) * 1500 - 3000;
+      iip.push({
+        id: `${ym}-i${i}`, groupId: `g-${ym}-${i}`, leadGen: P(gens[i % gens.length]), salesRep: P(reps[i % reps.length]),
+        leadSource: sources[i % sources.length], cpl: 50,
+        dates: { bookedDate: d(day), appointmentDate: d(day), soldDate: d(day), creationLog: d(day) },
+        amounts: { revenue: rev, grossProfit: Math.round(rev * 0.3) },
+      });
+    }
+  }
+
   return { virtualCallCentre: vcc, salesFunnel: sf, installations: iip };
 }

@@ -323,6 +323,41 @@ function computeLeadSourceReport(normalized, range) {
 }
 
 /**
+ * Monthly trend for the last `months` calendar months (role-independent):
+ * sold count + revenue (by Sold Date) and booked count (by Booked Date).
+ */
+function computeTrend(normalized, now, months = 6) {
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth();
+  const out = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const ref = new Date(Date.UTC(y, m - i, 15));
+    const range = resolveTimeframe('this_month', {}, ref);
+    let sold = 0;
+    let revenue = 0;
+    let booked = 0;
+    for (const it of normalized.installations) {
+      if (isWithin(it.dates.soldDate, range)) {
+        sold += 1;
+        revenue += it.amounts?.revenue || 0;
+      }
+      if (isWithin(it.dates.bookedDate, range)) booked += 1;
+    }
+    for (const it of normalized.salesFunnel) {
+      if (isWithin(it.dates.bookedDate, range)) booked += 1;
+    }
+    out.push({
+      month: `${ref.getUTCFullYear()}-${String(ref.getUTCMonth() + 1).padStart(2, '0')}`,
+      label: new Date(Date.UTC(y, m - i, 1)).toLocaleString('en-AU', { month: 'short' }),
+      sold,
+      revenue: Math.round(revenue),
+      booked,
+    });
+  }
+  return out;
+}
+
+/**
  * Top-level: compute metrics for both roles for a timeframe.
  * @param {object} normalized board arrays keyed by board key
  * @param {string} timeframeId
@@ -366,6 +401,7 @@ export function computeMetrics(normalized, timeframeId, custom = {}, now = new D
     leadGen,
     salesRep,
     leadSources: computeLeadSourceReport(normalized, range),
+    trend: computeTrend(normalized, now, 6),
   };
 }
 

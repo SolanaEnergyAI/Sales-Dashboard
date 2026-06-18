@@ -7,6 +7,7 @@ import Leaderboard from './components/Leaderboard.jsx';
 import RepChart from './components/RepChart.jsx';
 import LeadSourcePanel from './components/LeadSourcePanel.jsx';
 import LeadSourceChart from './components/LeadSourceChart.jsx';
+import TrendChart from './components/TrendChart.jsx';
 
 const POLL_MS = 60000;
 
@@ -164,6 +165,7 @@ export default function App() {
             <ConversionPanel role={role} totals={roleData.totals} labels={conversionLabels} />
             <RepChart people={roleData.people} />
           </div>
+          <TrendChart trend={data.trend} />
           <Leaderboard role={role} people={roleData.people} />
           <div className="grid-2">
             <LeadSourceChart sources={data.leadSources} />

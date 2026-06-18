@@ -203,6 +203,30 @@ test('All-time has no previous comparison', () => {
   assert.equal(r.leadGen.compare, undefined);
 });
 
+test('6-month trend buckets sold + revenue by month', () => {
+  const sale = (id, soldDate, rev) => ({
+    id, groupId: 'w', leadGen: [], salesRep: [], leadSource: 'TQC', cpl: null,
+    dates: { soldDate: d(soldDate), bookedDate: d(soldDate), creationLog: d(soldDate) },
+    amounts: { revenue: rev, grossProfit: 0 },
+  });
+  const data = {
+    virtualCallCentre: [], salesFunnel: [],
+    installations: [sale('a', '2026-05-10', 10000), sale('b', '2026-06-05', 12000), sale('c', '2026-06-25', 8000)],
+  };
+  const now = new Date('2026-06-15T00:00:00Z');
+  const r = computeMetrics(data, 'this_month', {}, now);
+
+  assert.equal(r.trend.length, 6);
+  const last = r.trend[r.trend.length - 1]; // June
+  const prev = r.trend[r.trend.length - 2]; // May
+  assert.equal(last.label, 'Jun');
+  assert.equal(last.sold, 2);
+  assert.equal(last.revenue, 20000);
+  assert.equal(prev.label, 'May');
+  assert.equal(prev.sold, 1);
+  assert.equal(prev.revenue, 10000);
+});
+
 test('Timeframe filtering narrows the window', () => {
   // Only items whose own date column falls in June 14-16 should count for some.
   const r = computeMetrics(dataset(), 'custom', { from: '2026-06-14', to: '2026-06-16' });
