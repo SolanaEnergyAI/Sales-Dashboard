@@ -52,6 +52,39 @@ never exposed to the browser.
 
 ---
 
+## Deployment
+
+The Express server serves the built React app, so the whole dashboard runs as a
+single service/container on one port.
+
+### Docker (recommended)
+```bash
+# 1. Put your token in a .env file next to docker-compose.yml
+echo "MONDAY_API_TOKEN=your_token_here" > .env
+
+# 2. Build + run
+docker compose up -d --build
+
+# 3. Open http://localhost:4000  (logs: docker compose logs -f)
+```
+The image is multi-stage (builds the frontend, runs the API) and includes a
+`/api/health` healthcheck. Override `DASHBOARD_TIMEZONE`,
+`REFRESH_INTERVAL_SECONDS`, `TARGET_SOLD_MONTHLY`, `TARGET_REVENUE_MONTHLY` in
+`.env` as needed.
+
+### Without Docker (any Node 22 host)
+```bash
+npm install
+npm run build          # outputs web/dist
+MONDAY_API_TOKEN=... npm start   # serves API + UI on PORT (default 4000)
+```
+Run it behind a reverse proxy (Nginx/Caddy) for TLS, or on a PaaS (Render,
+Railway, Fly.io, a small VM). Set the env vars in the platform's dashboard.
+
+> **Platform notes:** Vercel/Netlify are static-only and won't run the cached
+> backend cleanly — prefer a container/Node host (Render, Railway, Fly.io, VM)
+> so the server-side Monday token stays private and the cache/refresh loop runs.
+
 ## Configuration (`server/.env`)
 
 | Variable | Default | Meaning |
@@ -60,6 +93,8 @@ never exposed to the browser.
 | `PORT` | `4000` | API + dashboard port. |
 | `REFRESH_INTERVAL_SECONDS` | `300` | How often the cache re-pulls from Monday. |
 | `DASHBOARD_TIMEZONE` | `Australia/Sydney` | Timezone for all timeframe boundaries. |
+| `TARGET_SOLD_MONTHLY` | `20` | Default monthly team Sold target (editable in UI). |
+| `TARGET_REVENUE_MONTHLY` | `400000` | Default monthly team Revenue target (editable in UI). |
 
 ---
 

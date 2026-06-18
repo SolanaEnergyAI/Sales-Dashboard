@@ -1,0 +1,16 @@
+services:
+  dashboard:
+    build: .
+    image: solana-sales-dashboard
+    ports:
+      - "4000:4000"
+    environment:
+      # Required: your Monday API token (set in a .env file next to this compose).
+      MONDAY_API_TOKEN: ${MONDAY_API_TOKEN:?set MONDAY_API_TOKEN in .env}
+      PORT: 4000
+      DASHBOARD_TIMEZONE: ${DASHBOARD_TIMEZONE:-Australia/Sydney}
+      REFRESH_INTERVAL_SECONDS: ${REFRESH_INTERVAL_SECONDS:-300}
+      # Optional default monthly team targets (also editable in the UI):
+      TARGET_SOLD_MONTHLY: ${TARGET_SOLD_MONTHLY:-20}
+      TARGET_REVENUE_MONTHLY: ${TARGET_REVENUE_MONTHLY:-400000}
+    restart: unless-stopped
