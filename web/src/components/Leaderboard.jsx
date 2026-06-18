@@ -33,7 +33,7 @@ function pct(v) {
   return v === null || v === undefined ? '—' : `${v}%`;
 }
 
-export default function Leaderboard({ role, people }) {
+export default function Leaderboard({ role, people, onSelect }) {
   const [sortKey, setSortKey] = useState('sold');
   const [dir, setDir] = useState('desc');
   const convCols = CONV_COLS[role];
@@ -88,7 +88,7 @@ export default function Leaderboard({ role, people }) {
               </tr>
             )}
             {sorted.map((p, i) => (
-              <tr key={p.id}>
+              <tr key={p.id} className="row-click" onClick={() => onSelect && onSelect(p.id)} title="View details">
                 <td className="sticky-col name">
                   <span className={rankClass(i)}>{i + 1}</span>
                   {p.name}

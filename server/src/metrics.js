@@ -405,6 +405,86 @@ export function computeMetrics(normalized, timeframeId, custom = {}, now = new D
   };
 }
 
+function personMatches(item, role, personId) {
+  return (item[role] || []).some((p) => p.id === personId);
+}
+
+/** Per-month sold + revenue for one person (their personal trend). */
+function computePersonTrend(normalized, role, personId, now, months = 6) {
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth();
+  const out = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const ref = new Date(Date.UTC(y, m - i, 15));
+    const range = resolveTimeframe('this_month', {}, ref);
+    let sold = 0;
+    let revenue = 0;
+    for (const it of normalized.installations) {
+      if (!isWithin(it.dates.soldDate, range)) continue;
+      if (!personMatches(it, role, personId)) continue;
+      sold += 1;
+      revenue += it.amounts?.revenue || 0;
+    }
+    out.push({
+      label: new Date(Date.UTC(y, m - i, 1)).toLocaleString('en-AU', { month: 'short' }),
+      sold,
+      revenue: Math.round(revenue),
+    });
+  }
+  return out;
+}
+
+/**
+ * Drill-down detail for one person in a role + timeframe: their headline
+ * totals, the sold deals they own, their sold-by-source split, and a personal
+ * 6-month trend.
+ */
+export function computePersonDetail(normalized, role, personId, timeframeId, custom = {}, now = new Date()) {
+  const range = resolveTimeframe(timeframeId, custom, now);
+  const roleResult = computeRole(normalized, role, range);
+  const summary = roleResult.people.find((p) => p.id === personId) || {
+    id: personId, name: `User ${personId}`, assigned: 0, booked: 0, sat: 0, sold: 0, revenue: 0, grossProfit: 0, conv: {},
+  };
+
+  const counterRole = role === 'leadGen' ? 'salesRep' : 'leadGen';
+  const deals = [];
+  for (const it of normalized.installations) {
+    if (!isWithin(it.dates.soldDate, range)) continue;
+    if (!personMatches(it, role, personId)) continue;
+    deals.push({
+      id: it.id,
+      soldDate: it.dates.soldDate.toISOString().slice(0, 10),
+      revenue: it.amounts?.revenue || 0,
+      grossProfit: it.amounts?.grossProfit || 0,
+      source: it.leadSource || 'Unspecified',
+      counterpart: it[counterRole]?.[0]?.name || '—',
+    });
+  }
+  deals.sort((a, b) => b.revenue - a.revenue);
+
+  const bySource = new Map();
+  for (const dl of deals) {
+    const r = bySource.get(dl.source) || { source: dl.source, sold: 0, revenue: 0 };
+    r.sold += 1;
+    r.revenue += dl.revenue;
+    bySource.set(dl.source, r);
+  }
+  const sources = [...bySource.values()]
+    .map((s) => ({ ...s, revenue: Math.round(s.revenue) }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  return {
+    id: personId,
+    name: summary.name,
+    role,
+    counterRole,
+    summary,
+    deals,
+    sources,
+    trend: computePersonTrend(normalized, role, personId, now, 6),
+  };
+}
+
 export const CONVERSION_LABELS = {
   assignedToBooked: 'Assigned → Booked',
   assignedToSat: 'Assigned → Sat',

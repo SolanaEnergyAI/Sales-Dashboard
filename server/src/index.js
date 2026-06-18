@@ -11,7 +11,7 @@ import cors from 'cors';
 
 import { runtime } from './config.js';
 import { startAutoRefresh, getState, isReady, refresh } from './dataStore.js';
-import { computeMetrics, CONVERSION_LABELS } from './metrics.js';
+import { computeMetrics, computePersonDetail, CONVERSION_LABELS } from './metrics.js';
 import { TIMEFRAME_IDS, TIMEFRAME_LABELS } from './timeframes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -62,6 +62,22 @@ api.get('/metrics', (req, res) => {
       lastRefreshed: getState().lastRefreshed,
       timeframeLabel: TIMEFRAME_LABELS[timeframe],
     });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+api.get('/person', (req, res) => {
+  if (!isReady()) return res.status(503).json({ error: 'Data not loaded yet.' });
+  const role = String(req.query.role || 'leadGen');
+  const id = String(req.query.id || '');
+  const timeframe = String(req.query.timeframe || 'this_month');
+  if (!['leadGen', 'salesRep'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
+  if (!id) return res.status(400).json({ error: 'Missing id' });
+  if (!TIMEFRAME_IDS.includes(timeframe)) return res.status(400).json({ error: `Unknown timeframe: ${timeframe}` });
+  try {
+    const detail = computePersonDetail(getState().normalized, role, id, timeframe, { from: req.query.from, to: req.query.to });
+    res.json({ ...detail, timeframeLabel: TIMEFRAME_LABELS[timeframe] });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

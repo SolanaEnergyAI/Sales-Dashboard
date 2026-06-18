@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeMetrics } from '../src/metrics.js';
+import { computeMetrics, computePersonDetail } from '../src/metrics.js';
 import { SALES_FUNNEL_POST_SAT_GROUPS } from '../src/config.js';
 
 const LG_A = { id: '1', name: 'Lead Gen A' };
@@ -225,6 +225,19 @@ test('6-month trend buckets sold + revenue by month', () => {
   assert.equal(prev.label, 'May');
   assert.equal(prev.sold, 1);
   assert.equal(prev.revenue, 10000);
+});
+
+test('Person drill-down returns deals, sources and summary for one person', () => {
+  const detail = computePersonDetail(dataset(), 'leadGen', '1', 'all_time');
+  assert.equal(detail.name, 'Lead Gen A');
+  assert.equal(detail.role, 'leadGen');
+  assert.equal(detail.counterRole, 'salesRep');
+  assert.equal(detail.summary.sold, 1); // i1 only
+  assert.equal(detail.deals.length, 1);
+  assert.equal(detail.deals[0].counterpart, 'Rep A'); // the Sales Rep on the deal
+  assert.equal(detail.deals[0].revenue, 20000);
+  assert.equal(detail.sources[0].sold, 1);
+  assert.equal(detail.trend.length, 6);
 });
 
 test('Timeframe filtering narrows the window', () => {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { fetchMeta, fetchMetrics, fetchHealth, triggerRefresh } from './api.js';
+import { fetchMeta, fetchMetrics, fetchHealth, triggerRefresh, fetchPerson } from './api.js';
 import { exportCsv } from './export.js';
 import KpiCards from './components/KpiCards.jsx';
 import ConversionPanel from './components/ConversionPanel.jsx';
@@ -8,6 +8,7 @@ import RepChart from './components/RepChart.jsx';
 import LeadSourcePanel from './components/LeadSourcePanel.jsx';
 import LeadSourceChart from './components/LeadSourceChart.jsx';
 import TrendChart from './components/TrendChart.jsx';
+import PersonDrawer from './components/PersonDrawer.jsx';
 
 const POLL_MS = 60000;
 
@@ -29,6 +30,10 @@ export default function App() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [personId, setPersonId] = useState(null);
+  const [person, setPerson] = useState(null);
+  const [personLoading, setPersonLoading] = useState(false);
+  const [personError, setPersonError] = useState(null);
 
   useEffect(() => {
     fetchMeta().then(setMeta).catch((e) => setError(e.message));
@@ -57,6 +62,25 @@ export default function App() {
     const id = setInterval(load, POLL_MS);
     return () => clearInterval(id);
   }, [load]);
+
+  // Load person detail when a row is selected (or timeframe/role changes while open).
+  useEffect(() => {
+    if (!personId) return;
+    let cancelled = false;
+    setPersonLoading(true);
+    setPersonError(null);
+    fetchPerson({ role, id: personId, timeframe, from: custom.from, to: custom.to })
+      .then((d) => !cancelled && setPerson(d))
+      .catch((e) => !cancelled && setPersonError(e.message))
+      .finally(() => !cancelled && setPersonLoading(false));
+    return () => { cancelled = true; };
+  }, [personId, role, timeframe, custom]);
+
+  function closeDrawer() {
+    setPersonId(null);
+    setPerson(null);
+    setPersonError(null);
+  }
 
   async function onRefresh() {
     setRefreshing(true);
@@ -166,7 +190,7 @@ export default function App() {
             <RepChart people={roleData.people} />
           </div>
           <TrendChart trend={data.trend} />
-          <Leaderboard role={role} people={roleData.people} />
+          <Leaderboard role={role} people={roleData.people} onSelect={setPersonId} />
           <div className="grid-2">
             <LeadSourceChart sources={data.leadSources} />
             <LeadSourcePanel sources={data.leadSources} />
@@ -181,6 +205,14 @@ export default function App() {
           ))}
         </div>
       )}
+
+      <PersonDrawer
+        open={Boolean(personId)}
+        loading={personLoading}
+        detail={person}
+        error={personError}
+        onClose={closeDrawer}
+      />
 
       <footer className="footer">
         Data source: Monday.com CRM · <span className="pipe">Virtual Call Centre → Sales Funnel → Installations</span>

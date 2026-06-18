@@ -228,6 +228,51 @@ body {
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+/* ---------- Row click + Drawer ---------- */
+.board-table .row-click { cursor: pointer; }
+.board-table .row-click:hover td { background: #f3f7ee; }
+
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(30, 30, 43, 0.42);
+  z-index: 50; display: flex; justify-content: flex-end;
+  animation: fade 0.18s ease;
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.drawer {
+  width: min(560px, 94vw); height: 100%; background: var(--bg);
+  box-shadow: var(--shadow-lg); overflow-y: auto;
+  animation: slidein 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes slidein { from { transform: translateX(40px); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
+.drawer-head {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--navy); color: #fff; padding: 18px 22px;
+  border-bottom: 3px solid transparent; border-image: var(--grad) 1;
+}
+.drawer-name { font-size: 19px; font-weight: 700; }
+.drawer-role { font-size: 12.5px; color: #b9bac6; margin-top: 2px; }
+.drawer-close {
+  background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 22px; line-height: 1;
+  width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+}
+.drawer-close:hover { background: rgba(255,255,255,0.22); }
+.drawer-body { padding: 18px 22px 32px; }
+.drawer-section { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 22px 0 10px; font-weight: 600; }
+
+.mini-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.mini-kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: center; }
+.mini-val { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+.mini-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.spark { display: flex; align-items: flex-end; gap: 8px; height: 90px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.spark-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 5px; }
+.spark-bar { width: 70%; min-height: 3px; background: linear-gradient(180deg, var(--teal), var(--green)); border-radius: 4px 4px 0 0; transition: height 0.4s; }
+.spark-label { font-size: 10.5px; color: var(--faint); }
+
+.board-table.compact { font-size: 12.5px; }
+.board-table.compact th, .board-table.compact td { padding: 8px 10px; }
+
 /* ---------- Footer ---------- */
 .footer {
   color: var(--faint); font-size: 12px; text-align: center; margin-top: 28px;
